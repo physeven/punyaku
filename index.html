@@ -1,198 +1,144 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CUB3DPlayer</title>
   <style>
-    :root{
-      --mint:#52c3a5;
-      --surface:#233239;
-      --surface-2:#31434b;
-      --text:#ffffff;
-      --muted:#a8bec7;
-      --accent:#59dcae;
-      --shadow:0 20px 50px rgba(0,0,0,.35);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; font-family:"Inter",sans-serif; background:var(--mint); color:var(--text)}
-    .wrap{max-width:520px; height:100dvh; margin:0 auto; display:grid; grid-template-rows:64px 1fr auto 110px; background:#2a3b43; background-image:linear-gradient(to bottom,rgba(0,0,0,.25),rgba(0,0,0,.25)),url('bg.jpg'); background-size:cover; background-position:center top; box-shadow:var(--shadow); position:relative}
-    header{height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 18px; background:linear-gradient(to bottom,rgba(0,0,0,.35),rgba(0,0,0,.0)); border-bottom:1px solid rgba(255,255,255,.06)}
-    header h1{font-size:16px; margin:0; font-weight:700}
-    .icon-btn{display:grid; place-items:center; width:32px; height:32px; border-radius:8px; cursor:pointer}
-    .hero{display:grid; align-content:start; justify-items:center; gap:16px; padding:28px 24px 24px}
-    .now-playing{display:flex; align-items:center; gap:10px; font-weight:700; color:#b6ffd7}
-    .album{width:120px; height:120px; border-radius:10px; overflow:hidden; box-shadow:0 14px 30px rgba(0,0,0,.45)}
-    .album img{width:100%; height:100%; object-fit:cover}
-    .title{font-size:15px; text-align:center; font-weight:700}
-    .subtitle{font-size:12px; color:var(--muted); margin-top:-8px}
-    .controlsTop{background:#2d3e45; display:grid; place-items:center; gap:18px; padding:18px 20px; border-top:1px solid rgba(255,255,255,.06)}
-    .loop-shuffle{display:flex; gap:26px; align-items:center}
-    .progress-wrap{width:100%}
-    .bar{appearance:none; width:100%; height:6px; border-radius:999px; background:#43565f; outline:none}
-    .bar::-webkit-slider-thumb{appearance:none; width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px rgba(89,220,174,.15)}
-    .time{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px}
-    .controlsBottom{background:#27373d; display:flex; align-items:center; justify-content:space-between; padding:0 46px; border-top:1px solid rgba(255,255,255,.06)}
-    .play{width:66px; height:66px; border-radius:50%; background:#f0f6f4; color:#111; display:grid; place-items:center; box-shadow:0 10px 30px rgba(0,0,0,.35); cursor:pointer}
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+    body {background:#4DB6AC;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    .player {width:400px;background:#263238;border-radius:10px;box-shadow:0px 0px 20px rgba(0,0,0,0.3);overflow:hidden}
+    .header {display:flex;justify-content:space-between;align-items:center;padding:15px 20px;color:white;font-weight:600}
+    .now-playing {text-align:center;margin-top:10px;color:#4DB6AC;font-weight:600}
+    .cover {display:block;margin:15px auto;width:150px;height:150px;border-radius:10px;object-fit:cover;background:#37474F}
+    .title {text-align:center;color:white;font-weight:600;margin-top:5px}
+    .artist {text-align:center;color:#B0BEC5;font-size:14px;margin-bottom:15px}
+    .controls-top {display:flex;justify-content:center;gap:20px;padding:10px}
+    .controls-top button,.controls-bottom button {border:none;outline:none;background:white;border-radius:8px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0px 2px 4px rgba(0,0,0,0.3)}
+    .progress-container {display:flex;align-items:center;padding:0 15px;color:white;font-size:12px}
+    .progress-bar {flex:1;margin:0 10px}
+    input[type="range"] {width:100%}
+    .controls-bottom {display:flex;justify-content:space-around;align-items:center;padding:15px}
+    .controls-bottom .play-btn {width:70px;height:70px;font-size:30px;border-radius:50%}
   </style>
 </head>
 <body>
-  <div class="wrap" id="app">
-    <header>
-      <div class="icon-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h14M3 18h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-      </div>
-      <h1>CUB3DPlayer</h1>
-      <div class="icon-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="white" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-      </div>
-    </header>
-
-    <section class="hero">
-      <div class="now-playing">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 9v6M19 6v12" stroke="#7cffb6" stroke-width="2" stroke-linecap="round"/></svg>
-        <span>Now Playing</span>
-      </div>
-      <div class="album"><img id="cover" alt="Sampul" src="cover.jpg"/></div>
-      <div class="title" id="trackTitle">Judul Lagu</div>
-      <div class="subtitle" id="trackArtist">Artis</div>
-    </section>
-
-    <section class="controlsTop">
-      <div class="loop-shuffle">
-        <button class="icon-btn" id="btnRepeat">⟳</button>
-        <button class="icon-btn" id="btnShuffle">🔀</button>
-      </div>
-      <div class="progress-wrap">
-        <input id="seek" class="bar" type="range" min="0" max="1000" value="0" step="1">
-        <div class="time"><span id="cur">0:00</span><span id="dur">0:00</span></div>
-      </div>
-    </section>
-
-    <section class="controlsBottom">
-      <button class="icon-btn" id="prev">⏮</button>
-      <button class="play" id="play">▶</button>
-      <button class="icon-btn" id="next">⏭</button>
-    </section>
-
-    <audio id="audio"></audio>
+  <div class="player">
+    <div class="header">
+      <span>☰</span>
+      <span>CUB3DPlayer</span>
+      <span>🔍</span>
+    </div>
+    <div class="now-playing">🎵 Now Playing</div>
+    <img src="cover.jpg" alt="Sampul" class="cover" id="cover">
+    <div class="title" id="title">Judul Lagu</div>
+    <div class="artist" id="artist">Artis</div>
+    <div class="controls-top">
+      <button id="repeat">🔁</button>
+      <button id="shuffle">🔀</button>
+    </div>
+    <div class="progress-container">
+      <span id="current-time">0:00</span>
+      <input type="range" id="progress" class="progress-bar" value="0">
+      <span id="duration">0:00</span>
+    </div>
+    <div class="controls-bottom">
+      <button id="prev">⏮</button>
+      <button class="play-btn" id="play">▶</button>
+      <button id="next">⏭</button>
+    </div>
   </div>
 
   <script>
-  const audio = document.getElementById('audio');
-  const playBtn = document.getElementById('play');
-  const prevBtn = document.getElementById('prev');
-  const nextBtn = document.getElementById('next');
-  const seek = document.getElementById('seek');
-  const cur = document.getElementById('cur');
-  const dur = document.getElementById('dur');
-  const titleEl = document.getElementById('trackTitle');
-  const artistEl = document.getElementById('trackArtist');
-  const coverEl = document.getElementById('cover');
+    // --- Daftar Lagu ---
+    const songs = [
+      { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Hindia - Evaluasi", file: "Hindia.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "O Tuan", file: "O Tuan - _.Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "Tarot - .Feast", file: "Tarot - .Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "Rumah ke Rumah", file: "Hindia - Rumah ke Rumah Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Lesung Pipi", file: "Raim Laode - Lesung Pipi (Lirik).mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
+      { title: "Komang", file: "KOMANG - RAIM LAODE LYRIC OFFICIAL.mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
+      { title: "Pamungkas - Monolog", file: "Pamungkas - Monolog (Lirik Lagu).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
+      { title: "Bunga Abadi", file: "Rio Clappy - Bunga Abadi (Lirik Lyrics).mp3", artist: "Rio Clappy", cover: "rio clappy.jpg" },
+      { title: "Bunga Maaf", file: "The Lantis - Bunga Maaf (Lyrics).mp3", artist: "The Lantis", cover: "the lantis.jpg" },
+      { title: "Dewa - Risalah Hati", file: "Dewa - Risalah Hati - LIRIK LAGU.mp3", artist: "Dewa", cover: "dewa.jpg" },
+      { title: "Dewa 19 - Kangen", file: "Dewa 19 - Kangen - ( Lirik Lagu ).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
+      { title: "Dewa 19 - Separuh Nafas", file: "Dewa 19 - Separuh Nafas (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
+      { title: "GENIT - TIPE-X", file: "GENIT - TIPE-X ( lirik video ).mp3", artist: "Tipe-X", cover: "tipe-x.jpg" },
+      { title: "Lyla - Karena Kamu Cantik", file: "Lyla - Karena Kamu Cantik Kamu Baik Lirik Lagu.mp3", artist: "Lyla", cover: "lyla.jpg" },
+      { title: "Pupus - Dewa 19", file: "Pupus - Dewa 19 (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
+      { title: "Tulus - Hati-hati di jalan", file: "Tulus - Hati-hati di jalan Lirik Lagu Indonesia.mp3", artist: "Tulus", cover: "tulus.jpg" },
+      { title: "Batas Senja - Nanti Kita Seperti Ini", file: "Batas Senja - Nanti Kita Seperti Ini (Lirik).mp3", artist: "Batas Senja", cover: "batas senja.jpg" },
+      { title: "For Revenge - Jakarta Hari Ini", file: "For Revenge - Jakarta Hari Ini Lirik Lagu.mp3", artist: "For Revenge", cover: "for revenge.jpg" },
+      { title: "Ghea Indrawari - Jiwa Yang Bersedih", file: "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3", artist: "Ghea Indrawari", cover: "ghea indrawari.jpg" },
+      { title: "Kelingan Mantan - NDX A.K.A", file: "Kelingan Mantan - NDX A.K.A.mp3", artist: "NDX A.K.A", cover: "ndx aka.jpg" },
+      { title: "Last Child - Duka", file: "Last Child - Duka Lirik Lagu.mp3", artist: "Last Child", cover: "last child.jpg" },
+      { title: "Virgoun - Selamat Tinggal", file: "Virgoun - Selamat (Selamat Tinggal) ft Audy Lirik Lagu.mp3", artist: "Virgoun ft Audy", cover: "virgoun.jpg" },
+      { title: "Geisha - Karena Kamu", file: "Geisha - Karena Kamu (Lyrics).mp3", artist: "Geisha", cover: "geisha.jpg" },
+      { title: "Baby - Justin Bieber", file: "Baby - Justin Bieber feat. Ludacris (Lirik Lagu Terjemahan).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
+      { title: "Night Changes - One Direction", file: "Night Changes - One Direction (Lirik Lagu Terjemahan).mp3", artist: "One Direction", cover: "one direction.jpg" },
+      { title: "Avicii - The Nights", file: "Iframe Avicii - The Nights (Lyrics) _my father told me_ [H78YW7ycuwI].mp3", artist: "Avicii", cover: "avicii.jpg" },
+      { title: "Somebody's Pleasure - Aziz Hedra", file: "Iframe Aziz Hedra - Somebody's Pleasure (Lyrics) [zawDTvoXT8k].mp3", artist: "Aziz Hedra", cover: "aziz hedra.jpg" },
+      { title: "Be Alright - Dean Lewis", file: "Iframe Dean Lewis - Be Alright (Lyrics) [c8L-ZoKNENU].mp3", artist: "Dean Lewis", cover: "dean lewis.jpg" },
+      { title: "Jar Of Hearts - Christina Perri", file: "Iframe Jar of Hearts - Christina Perri (Lyrics video dan terjemahan) [hTdwEMBB62w] (1).mp3", artist: "Christina Perri", cover: "christina perri.jpg" },
+      { title: "Payphone - Maroon 5", file: "Iframe Payphone - Maroon 5 ft. Wiz Khalifa (Lyrics video dan terjemahan) [ZWmfm5vmqvk].mp3", artist: "Maroon 5", cover: "maroon 5.jpg" },
+      { title: "Rewrite The Stars - James Arthur & Anne Marie", file: "Iframe Rewrite The Stars - James Arthur feat. Anne Marie [Lyrics_Vietsub] [HiYMlQoFz6c].mp3", artist: "James Arthur & Anne Marie", cover: "james arthur & anne marie.jpg" },
+      { title: "8 Letters - Why Don't We", file: "Iframe Vietsub _ 8 Letters - Why Don't We _ Nhạc Hot TikTok _ Lyrics Video [8yamg7y-Jv0].mp3", artist: "Why Don't We", cover: "why don't we.jpg" },
+      { title: "Where We Are - One Direction", file: "Iframe Where We Are - One Direction __ Lyrics Tiktok Version [yYxMH3twnjk].mp3", artist: "One Direction", cover: "one direction.jpg" },
+      { title: "Akon - Lonely", file: "Akon - Lonely.mp3", artist: "Akon", cover: "akon.jpg" },
+      { title: "Akon - Don't Matter", file: "Akon - Don't Matter (Lyrics).mp3", artist: "Akon", cover: "akon.jpg" },
+      { title: "Alan Walker - All Falls Down", file: "Alan Walker - All Falls Down (Lyrics Lyric Video) feat. Noah Cyrus & Digital Farm Animals.mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
+      { title: "Alan Walker - Alone", file: "Alan Walker - Alone (Lyrics).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
+      { title: "Ed Sheeran - Perfect", file: "Ed Sheeran - Perfect.mp3", artist: "Ed Sheeran", cover: "ed sheeran.jpg" },
+      { title: "Justin Bieber - Ghost", file: "Justin Bieber - Ghost (Lyrics).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
+      { title: "Lily - Alan Walker K-391 & Emelie Hollow", file: "Lily - Alan Walker K-391 & Emelie Hollow (Lirik Lagu Terjemahan).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
+      { title: "Pamungkas - To The Bone", file: "To The Bone - Pamungkas (Lirik Lagu & Terjemahan).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
+      { title: "Ruth B. - Dandelions", file: "Ruth B. - Dandelions (Lyrics).mp3", artist: "Ruth B.", cover: "ruth b..jpg" },
+      { title: "Mood", file: "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3", artist: "24kGoldn", cover: "24kgoldn.jpg" },
+      { title: "Replay", file: "Iframe Iyaz - Replay _ Lyrics [GqYj_f9gVqM].mp3", artist: "Iyaz", cover: "iyaz.jpg" },
+      { title: "Beauty And A Beat", file: "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3", artist: "Justin Bieber ft Nicki Minaj", cover: "justin bieber.jpg" }
+    ];
 
-  // Playlist semua lagu
-  const songs = [
-    { title: "Hindia Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-    { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-    { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-    { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-    { title: "O Tuan", file: "O Tuan - _.Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
-    { title: "Tarot - .Feast", file: "Tarot - .Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
-    { title: "Rumah ke Rumah", file: "Hindia - Rumah ke Rumah Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-    { title: "Lesung Pipi", file: "Raim Laode - Lesung Pipi (Lirik).mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
-    { title: "Komang", file: "KOMANG - RAIM LAODE LYRIC OFFICIAL.mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
-    { title: "Pamungkas - Monolog", file: "Pamungkas - Monolog (Lirik Lagu).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
-    { title: "Bunga Abadi", file: "Rio Clappy - Bunga Abadi (Lirik Lyrics).mp3", artist: "Rio Clappy", cover: "rio clappy.jpg" },
-    { title: "Bunga Maaf", file: "The Lantis - Bunga Maaf (Lyrics).mp3", artist: "The Lantis", cover: "the lantis.jpg" },
-    { title: "Dewa - Risalah Hati", file: "Dewa - Risalah Hati - LIRIK LAGU.mp3", artist: "Dewa", cover: "dewa 19.jpg" },
-    { title: "Dewa 19 - Kangen", file: "Dewa 19 - Kangen - ( Lirik Lagu ).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-    { title: "Dewa 19 - Separuh Nafas", file: "Dewa 19 - Separuh Nafas (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-    { title: "GENIT - TIPE-X", file: "GENIT - TIPE-X ( lirik video ).mp3", artist: "Tipe-X", cover: "tipe-x.jpg" },
-    { title: "Lyla - Karena Kamu Cantik", file: "Lyla - Karena Kamu Cantik Kamu Baik Lirik Lagu.mp3", artist: "Lyla", cover: "lyla.jpg" },
-    { title: "Pupus - Dewa 19", file: "Pupus - Dewa 19 (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-    { title: "Tulus - Hati-hati di jalan", file: "Tulus - Hati-hati di jalan Lirik Lagu Indonesia.mp3", artist: "Tulus", cover: "tulus.jpg" },
-    { title: "Batas Senja - Nanti Kita Seperti Ini", file: "Batas Senja - Nanti Kita Seperti Ini (Lirik).mp3", artist: "Batas Senja", cover: "batas senja.jpg" },
-    { title: "For Revenge - Jakarta Hari Ini", file: "For Revenge - Jakarta Hari Ini Lirik Lagu.mp3", artist: "For Revenge", cover: "for revenge.jpg" },
-    { title: "Ghea Indrawari - Jiwa Yang Bersedih", file: "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3", artist: "Ghea Indrawari", cover: "ghea indrawari.jpg" },
-    { title: "Kelingan Mantan - NDX A.K.A", file: "Kelingan Mantan - NDX A.K.A.mp3", artist: "NDX A.K.A", cover: "ndx aka.jpg" },
-    { title: "Last Child - Duka", file: "Last Child - Duka Lirik Lagu.mp3", artist: "Last Child", cover: "last child.jpg" },
-    { title: "Virgoun - Selamat Tinggal", file: "Virgoun - Selamat (Selamat Tinggal) ft Audy Lirik Lagu.mp3", artist: "Virgoun ft Audy", cover: "virgoun.jpg" },
-    { title: "Geisha - Karena Kamu", file: "Geisha - Karena Kamu (Lyrics).mp3", artist: "Geisha", cover: "geisha.jpg" },
-    { title: "Baby - Justin Bieber", file: "Baby - Justin Bieber feat. Ludacris (Lirik Lagu Terjemahan).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
-    { title: "Night Changes - One Direction", file: "Night Changes - One Direction (Lirik Lagu Terjemahan).mp3", artist: "One Direction", cover: "one direction.jpg" },
-    { title: "Avicii - The Nights", file: "Iframe Avicii - The Nights (Lyrics) _my father told me_ [H78YW7ycuwI].mp3", artist: "Avicii", cover: "avicii.jpg" },
-    { title: "Somebody's Pleasure - Aziz Hedra", file: "Iframe Aziz Hedra - Somebody's Pleasure (Lyrics) [zawDTvoXT8k].mp3", artist: "Aziz Hedra", cover: "aziz hedra.jpg" },
-    { title: "Be Alright - Dean Lewis", file: "Iframe Dean Lewis - Be Alright (Lyrics) [c8L-ZoKNENU].mp3", artist: "Dean Lewis", cover: "dean lewis.jpg" },
-    { title: "Jar Of Hearts - Christina Perri", file: "Iframe Jar of Hearts - Christina Perri (Lyrics video dan terjemahan) [hTdwEMBB62w] (1).mp3", artist: "Christina Perri", cover: "christina perri.jpg" },
-    { title: "Payphone - Maroon 5", file: "Iframe Payphone - Maroon 5 ft. Wiz Khalifa (Lyrics video dan terjemahan) [ZWmfm5vmqvk].mp3", artist: "Maroon 5", cover: "maroon 5.jpg" },
-    { title: "Rewrite The Stars - James Arthur & Anne Marie", file: "Iframe Rewrite The Stars - James Arthur feat. Anne Marie [Lyrics_Vietsub] [HiYMlQoFz6c].mp3", artist: "James Arthur & Anne Marie", cover: "james arthur & anne marie.jpg" },
-    { title: "8 Letters - Why Don't We", file: "Iframe Vietsub _ 8 Letters - Why Don't We _ Nhạc Hot TikTok _ Lyrics Video [8yamg7y-Jv0].mp3", artist: "Why Don't We", cover: "why don't we.jpg" },
-    { title: "Where We Are - One Direction", file: "Iframe Where We Are - One Direction __ Lyrics Tiktok Version [yYxMH3twnjk].mp3", artist: "One Direction", cover: "one direction.jpg" },
-    { title: "Akon - Lonely", file: "Akon - Lonely.mp3", artist: "Akon", cover: "akon.jpg" },
-    { title: "Akon - Don't Matter", file: "Akon - Don't Matter (Lyrics).mp3", artist: "Akon", cover: "akon.jpg" },
-    { title: "Alan Walker - All Falls Down", file: "Alan Walker - All Falls Down (Lyrics Lyric Video) feat. Noah Cyrus & Digital Farm Animals.mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-    { title: "Alan Walker - Alone", file: "Alan Walker - Alone (Lyrics).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-    { title: "Ed Sheeran - Perfect", file: "Ed Sheeran - Perfect.mp3", artist: "Ed Sheeran", cover: "ed sheeran.jpg" },
-    { title: "Justin Bieber - Ghost", file: "Justin Bieber - Ghost (Lyrics).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
-    { title: "Lily - Alan Walker K-391 & Emelie Hollow", file: "Lily - Alan Walker K-391 & Emelie Hollow (Lirik Lagu Terjemahan).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-    { title: "Pamungkas - To The Bone", file: "To The Bone - Pamungkas (Lirik Lagu & Terjemahan).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
-    { title: "Ruth B. - Dandelions", file: "Ruth B. - Dandelions (Lyrics).mp3", artist: "Ruth B.", cover: "ruth b..jpg" },
-    { title: "Mood", file: "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3", artist: "24kGoldn", cover: "24kgoldn.jpg" },
-    { title: "Replay", file: "Iframe Iyaz - Replay _ Lyrics [GqYj_f9gVqM].mp3", artist: "Iyaz", cover: "iyaz.jpg" },
-    { title: "See You Again", file: "Wiz Khalifa - See You Again ft. Charlie Puth (Lyrics).mp3", artist: "Wiz Khalifa", cover: "wiz khalifa.jpg" },
-    { title: "Beauty And A Beat", file: "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" }
-  ];
+    let index = 0, isPlaying = false;
+    const audio = new Audio();
+    const playBtn = document.getElementById("play");
+    const title = document.getElementById("title");
+    const artist = document.getElementById("artist");
+    const cover = document.getElementById("cover");
+    const progress = document.getElementById("progress");
+    const currentTimeEl = document.getElementById("current-time");
+    const durationEl = document.getElementById("duration");
 
-  let index = 0;
-  let playing = false;
+    function loadSong(i) {
+      audio.src = songs[i].file;
+      title.textContent = songs[i].title;
+      artist.textContent = songs[i].artist;
+      cover.src = songs[i].cover;
+      audio.load();
+    }
+    function playSong(){isPlaying=true;audio.play();playBtn.textContent="⏸";}
+    function pauseSong(){isPlaying=false;audio.pause();playBtn.textContent="▶";}
 
-  function loadSong(i) {
-    index = (i + songs.length) % songs.length;
-    const song = songs[index];
-    audio.src = song.file;
-    titleEl.textContent = song.title;
-    artistEl.textContent = song.artist;
-    coverEl.src = song.cover;
-  }
+    playBtn.addEventListener("click",()=>{isPlaying?pauseSong():playSong();});
+    document.getElementById("next").addEventListener("click",()=>{index=(index+1)%songs.length;loadSong(index);playSong();});
+    document.getElementById("prev").addEventListener("click",()=>{index=(index-1+songs.length)%songs.length;loadSong(index);playSong();});
 
-  function playSong() { 
-    audio.play(); 
-    playing = true; 
-    playBtn.textContent = '⏸'; 
-  }
-
-  function pauseSong() { 
-    audio.pause(); 
-    playing = false; 
-    playBtn.textContent = '▶'; 
-  }
-
-  playBtn.onclick = () => { playing ? pauseSong() : playSong(); };
-  nextBtn.onclick = () => { loadSong(index + 1); playSong(); };
-  prevBtn.onclick = () => { loadSong(index - 1); playSong(); };
-
-  audio.addEventListener('timeupdate', () => {
-    const p = audio.currentTime / (audio.duration || 1);
-    seek.value = Math.round(p * 1000);
-    cur.textContent = fmt(audio.currentTime);
-    dur.textContent = fmt(audio.duration);
-  });
-
-  seek.addEventListener('input', () => {
-    if (!isFinite(audio.duration)) return;
-    const t = (seek.value / 1000) * audio.duration;
-    audio.currentTime = t;
-  });
-
-  function fmt(t) { 
-    if (!isFinite(t)) return '0:00'; 
-    const m = Math.floor(t / 60); 
-    const s = Math.floor(t % 60).toString().padStart(2, '0'); 
-    return `${m}:${s}`; 
-  }
-
-  // Load lagu pertama
-  loadSong(0);
-</script>
+    audio.addEventListener("timeupdate",()=>{
+      progress.value=(audio.currentTime/audio.duration)*100||0;
+      let m=Math.floor(audio.currentTime/60),s=Math.floor(audio.currentTime%60);if(s<10)s="0"+s;
+      currentTimeEl.textContent=`${m}:${s}`;
+      let dm=Math.floor(audio.duration/60),ds=Math.floor(audio.duration%60);if(ds<10)ds="0"+ds;
+      if(!isNaN(dm))durationEl.textContent=`${dm}:${ds}`;
+    });
+    progress.addEventListener("input",()=>{audio.currentTime=(progress.value/100)*audio.duration;});
+    audio.addEventListener("ended",()=>{index=(index+1)%songs.length;loadSong(index);playSong();});
+    loadSong(index);
+  </script>
 </body>
 </html>
