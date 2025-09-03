@@ -52,8 +52,8 @@
   </div>
 
   <script>
-    // --- Daftar Lagu ---
-    const songs = [
+  // --- Daftar Lagu ---
+  const songs = [
       { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
@@ -106,42 +106,98 @@
       { title: "Mood", file: "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3", artist: "24kGoldn", cover: "24kgoldn.jpg" },
       { title: "Replay", file: "Iframe Iyaz - Replay _ Lyrics [GqYj_f9gVqM].mp3", artist: "Iyaz", cover: "iyaz.jpg" },
       { title: "Beauty And A Beat", file: "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3", artist: "Justin Bieber ft Nicki Minaj", cover: "justin bieber.jpg" }
-    ];
+  ];
 
-    let index = 0, isPlaying = false;
-    const audio = new Audio();
-    const playBtn = document.getElementById("play");
-    const title = document.getElementById("title");
-    const artist = document.getElementById("artist");
-    const cover = document.getElementById("cover");
-    const progress = document.getElementById("progress");
-    const currentTimeEl = document.getElementById("current-time");
-    const durationEl = document.getElementById("duration");
+  let index = 0, isPlaying = false;
+  const audio = new Audio();
+  const playBtn = document.getElementById("play");
+  const title = document.getElementById("title");
+  const artist = document.getElementById("artist");
+  const cover = document.getElementById("cover");
+  const progress = document.getElementById("progress");
+  const currentTimeEl = document.getElementById("current-time");
+  const durationEl = document.getElementById("duration");
 
-    function loadSong(i) {
-      audio.src = songs[i].file;
-      title.textContent = songs[i].title;
-      artist.textContent = songs[i].artist;
-      cover.src = songs[i].cover;
-      audio.load();
+  function loadSong(i) {
+    audio.src = songs[i].file;
+    title.textContent = songs[i].title;
+    artist.textContent = songs[i].artist;
+    cover.src = songs[i].cover;
+    audio.load();
+    updateMediaSession(songs[i]); // update metadata notifikasi
+  }
+
+  function playSong() {
+    isPlaying = true;
+    audio.play();
+    playBtn.textContent = "⏸";
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "playing";
     }
-    function playSong(){isPlaying=true;audio.play();playBtn.textContent="⏸";}
-    function pauseSong(){isPlaying=false;audio.pause();playBtn.textContent="▶";}
+  }
 
-    playBtn.addEventListener("click",()=>{isPlaying?pauseSong():playSong();});
-    document.getElementById("next").addEventListener("click",()=>{index=(index+1)%songs.length;loadSong(index);playSong();});
-    document.getElementById("prev").addEventListener("click",()=>{index=(index-1+songs.length)%songs.length;loadSong(index);playSong();});
+  function pauseSong() {
+    isPlaying = false;
+    audio.pause();
+    playBtn.textContent = "▶";
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  }
 
-    audio.addEventListener("timeupdate",()=>{
-      progress.value=(audio.currentTime/audio.duration)*100||0;
-      let m=Math.floor(audio.currentTime/60),s=Math.floor(audio.currentTime%60);if(s<10)s="0"+s;
-      currentTimeEl.textContent=`${m}:${s}`;
-      let dm=Math.floor(audio.duration/60),ds=Math.floor(audio.duration%60);if(ds<10)ds="0"+ds;
-      if(!isNaN(dm))durationEl.textContent=`${dm}:${ds}`;
-    });
-    progress.addEventListener("input",()=>{audio.currentTime=(progress.value/100)*audio.duration;});
-    audio.addEventListener("ended",()=>{index=(index+1)%songs.length;loadSong(index);playSong();});
+  playBtn.addEventListener("click", () => { isPlaying ? pauseSong() : playSong(); });
+  document.getElementById("next").addEventListener("click", () => { nextSong(); });
+  document.getElementById("prev").addEventListener("click", () => { prevSong(); });
+
+  function nextSong() {
+    index = (index + 1) % songs.length;
     loadSong(index);
-  </script>
+    playSong();
+  }
+
+  function prevSong() {
+    index = (index - 1 + songs.length) % songs.length;
+    loadSong(index);
+    playSong();
+  }
+
+  audio.addEventListener("timeupdate", () => {
+    progress.value = (audio.currentTime / audio.duration) * 100 || 0;
+    let m = Math.floor(audio.currentTime / 60), s = Math.floor(audio.currentTime % 60);
+    if (s < 10) s = "0" + s;
+    currentTimeEl.textContent = `${m}:${s}`;
+    let dm = Math.floor(audio.duration / 60), ds = Math.floor(audio.duration % 60);
+    if (ds < 10) ds = "0" + ds;
+    if (!isNaN(dm)) durationEl.textContent = `${dm}:${ds}`;
+  });
+
+  progress.addEventListener("input", () => { audio.currentTime = (progress.value / 100) * audio.duration; });
+
+  audio.addEventListener("ended", () => { nextSong(); });
+
+  // --- Media Session API ---
+  function updateMediaSession(song) {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        artwork: [
+          { src: song.cover, sizes: "96x96", type: "image/jpg" },
+          { src: song.cover, sizes: "128x128", type: "image/jpg" },
+          { src: song.cover, sizes: "192x192", type: "image/jpg" },
+          { src: song.cover, sizes: "256x256", type: "image/jpg" },
+          { src: song.cover, sizes: "512x512", type: "image/jpg" }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler("play", playSong);
+      navigator.mediaSession.setActionHandler("pause", pauseSong);
+      navigator.mediaSession.setActionHandler("previoustrack", prevSong);
+      navigator.mediaSession.setActionHandler("nexttrack", nextSong);
+    }
+  }
+
+  loadSong(index);
+</script>
 </body>
 </html>
