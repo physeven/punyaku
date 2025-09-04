@@ -18,7 +18,14 @@
     .controls-top {display:flex;justify-content:center;gap:20px;padding:10px}
     .controls-top button,.controls-bottom button {border:none;outline:none;background:white;border-radius:8px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0px 2px 4px rgba(0,0,0,0.3)}
     .progress-visualizer {position: relative;width: 100%;height: 60px;margin-top: 10px;}
-    #visualizer {position: absolute;top: 0;left: 0;width: 100%;height: 60px;background: #000;border-radius: 8px;z-index: 1;}
+    #visualizer {
+      position: absolute;
+      top: 0;left: 0;
+      width: 100%;height: 60px;
+      background: transparent; /* transparan */
+      border-radius: 8px;
+      z-index: 1;
+    }
     .progress-container {position: relative;z-index: 2;display: flex;align-items: center;padding: 0 15px;color: white;font-size: 12px;height: 60px;}
     .progress-bar {flex:1;margin:0 10px}
     input[type="range"] {width:100%}
@@ -99,16 +106,17 @@
 
 <script>
   const songs = [
-   { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "O Tuan", file: "O Tuan - _.Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
+      { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Tarot - .Feast", file: "Tarot - .Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Rumah ke Rumah", file: "Hindia - Rumah ke Rumah Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - Evaluasi", file: "Hindia.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - Cincin Lirik Lagu", file: "Hindia - Cincin Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - Kita ke Sana", file: "Hindia - Kita ke Sana Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Ghea Indrawari - Jiwa Yang Bersedih", file: "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3", artist: "Ghea Indrawari", cover: "ghea indrawari.jpg" },
       { title: "Hindia - everything u are", file: "Hindia - everything u are Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hal - L", file: "Hal - L (Lirik Lagu Lyrics).mp3", artist: "Halstage", cover: "hal.jpg" },
       { title: "Bergema Sampai Selamanya", file: "Nadhif Basalamah - Bergema Sampai Selamanya (Lyrics).mp3", artist: "Nadhif Basalamah", cover: "nadhif basmallah.jpg" },
@@ -125,7 +133,6 @@
       { title: "Tulus - Hati-hati di jalan", file: "Tulus - Hati-hati di jalan Lirik Lagu Indonesia.mp3", artist: "Tulus", cover: "tulus.jpg" },
       { title: "Batas Senja - Nanti Kita Seperti Ini", file: "Batas Senja - Nanti Kita Seperti Ini (Lirik).mp3", artist: "Batas Senja", cover: "batas senja.jpg" },
       { title: "For Revenge - Jakarta Hari Ini", file: "For Revenge - Jakarta Hari Ini Lirik Lagu.mp3", artist: "For Revenge", cover: "for revenge.jpg" },
-      { title: "Ghea Indrawari - Jiwa Yang Bersedih", file: "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3", artist: "Ghea Indrawari", cover: "ghea indrawari.jpg" },
       { title: "Kelingan Mantan - NDX A.K.A", file: "Kelingan Mantan - NDX A.K.A.mp3", artist: "NDX A.K.A", cover: "ndx aka.jpg" },
       { title: "Last Child - Duka", file: "Last Child - Duka Lirik Lagu.mp3", artist: "Last Child", cover: "last child.jpg" },
       { title: "Virgoun - Selamat Tinggal", file: "Virgoun - Selamat (Selamat Tinggal) ft Audy Lirik Lagu.mp3", artist: "Virgoun ft Audy", cover: "virgoun.jpg" },
@@ -184,7 +191,6 @@
     document.querySelectorAll("#songList li").forEach(li => li.classList.remove("active"));
     if (songList.children[i]) songList.children[i].classList.add("active");
 
-    // Update Media Session
     updateMediaSession(songs[i]);
   }
 
@@ -250,6 +256,46 @@
       navigator.mediaSession.setActionHandler("nexttrack", nextSong);
     }
   }
+
+  // 🔥 Visualizer
+  const canvas = document.getElementById("visualizer");
+  const ctx = canvas.getContext("2d");
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  const source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  function drawVisualizer() {
+    requestAnimationFrame(drawVisualizer);
+    analyser.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+    let barHeight, x = 0;
+
+    // 🌈 Gradasi biru → ungu
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, "rgba(0, 180, 255, 0.7)");  // biru muda transparan
+    gradient.addColorStop(1, "rgba(180, 0, 255, 0.7)"); // ungu transparan
+    ctx.fillStyle = gradient;
+
+    for (let i = 0; i < bufferLength; i++) {
+      barHeight = dataArray[i] / 2;
+      ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+      x += barWidth + 1;
+    }
+  }
+
+  audio.addEventListener("play", () => {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    drawVisualizer();
+  });
+
 
   renderSongs(songs);
   loadSong(index);
