@@ -99,7 +99,7 @@
 
 <script>
   const songs = [
-    { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+   { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
       { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
@@ -108,6 +108,7 @@
       { title: "Rumah ke Rumah", file: "Hindia - Rumah ke Rumah Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - Evaluasi", file: "Hindia.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - Cincin Lirik Lagu", file: "Hindia - Cincin Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
+      { title: "Hindia - Kita ke Sana", file: "Hindia - Kita ke Sana Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hindia - everything u are", file: "Hindia - everything u are Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
       { title: "Hal - L", file: "Hal - L (Lirik Lagu Lyrics).mp3", artist: "Halstage", cover: "hal.jpg" },
       { title: "Bergema Sampai Selamanya", file: "Nadhif Basalamah - Bergema Sampai Selamanya (Lyrics).mp3", artist: "Nadhif Basalamah", cover: "nadhif basmallah.jpg" },
@@ -151,7 +152,7 @@
       { title: "Mood", file: "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3", artist: "24kGoldn", cover: "24kgoldn.jpg" },
       { title: "Replay", file: "Iframe Iyaz - Replay _ Lyrics [GqYj_f9gVqM].mp3", artist: "Iyaz", cover: "iyaz.jpg" },
       { title: "Beauty And A Beat", file: "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3", artist: "Justin Bieber ft Nicki Minaj", cover: "justin bieber.jpg" }
-    ];
+  ];
 
   let index = 0, isPlaying = false;
   const audio = new Audio();
@@ -179,8 +180,12 @@
     titleEl.textContent = songs[i].title;
     artistEl.textContent = songs[i].artist;
     coverEl.src = songs[i].cover;
+
     document.querySelectorAll("#songList li").forEach(li => li.classList.remove("active"));
     if (songList.children[i]) songList.children[i].classList.add("active");
+
+    // Update Media Session
+    updateMediaSession(songs[i]);
   }
 
   function playSong() { isPlaying = true; audio.play(); playBtn.textContent = "⏸"; }
@@ -228,6 +233,23 @@
     const filtered = songs.filter(song => song.title.toLowerCase().includes(keyword));
     renderSongs(filtered);
   });
+
+  // Media Session API
+  function updateMediaSession(song) {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        album: "CUB3DPlayer",
+        artwork: [{ src: song.cover, sizes: "512x512", type: "image/jpg" }]
+      });
+
+      navigator.mediaSession.setActionHandler("play", playSong);
+      navigator.mediaSession.setActionHandler("pause", pauseSong);
+      navigator.mediaSession.setActionHandler("previoustrack", prevSong);
+      navigator.mediaSession.setActionHandler("nexttrack", nextSong);
+    }
+  }
 
   renderSongs(songs);
   loadSong(index);
