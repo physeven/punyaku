@@ -3,604 +3,710 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sepitify</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <meta name="theme-color" content="#0d0f12">
+  <title>Sepitify - Web Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+    :root{--bg:#0d0f12;--surface:#14171d;--card:#1c2029;--border:#2a303c;--hover:#252b37;--green:#10b981;--cyan:#06b6d4;--muted:#8993a5}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:#e2e8f0;font-family:"Plus Jakarta Sans",sans-serif;min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:340px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0}
+    .brand-row{padding:22px 22px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2a303c99}
+    .brand{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:800;letter-spacing:-.7px}
+    .brand-icon{height:40px;width:40px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--cyan));color:#07130f;font-size:22px;box-shadow:0 8px 24px #10b98130}
+    .pro{font-size:10px;font-weight:800;letter-spacing:1px;color:#34d399;border:1px solid #10b98145;background:#10b98114;padding:6px 9px;border-radius:999px}
+    .search-wrap{padding:18px 18px 12px;position:relative}
+    .search-wrap span{position:absolute;left:32px;top:29px;color:#8b95a7;font-size:18px}
+    #searchInput{width:100%;border:1px solid var(--border);border-radius:12px;background:var(--card);color:#f8fafc;padding:13px 14px 13px 42px;outline:none;font-size:13px;transition:.2s}
+    #searchInput:focus{border-color:#10b98199;box-shadow:0 0 0 3px #10b98114}
+    .list-heading{padding:8px 22px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#9aa4b5;font-weight:700}
+    #songCount{color:#697386;letter-spacing:0;text-transform:none}
+    #playlistContainer{overflow:auto;padding:0 10px 16px;flex:1}
+    .song-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid transparent;border-radius:12px;cursor:pointer;transition:background .18s,border .18s;margin-bottom:3px}
+    .song-item:hover{background:var(--card)}
+    .song-item.active{background:#10b98117;border-color:#10b98145}
+    .thumb{width:44px;height:44px;flex-shrink:0;border-radius:9px;object-fit:cover;background:#242a34}
+    .song-meta{min-width:0;flex:1}
+    .song-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dbe2ec}
+    .song-artist{font-size:11px;color:#8791a2;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .song-item.active .song-name{color:#34d399}
+    .playing-bars{color:#34d399;font-size:14px;flex-shrink:0}
+    .main{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+    .ambient{position:absolute;inset:0 0 auto;height:52%;background:radial-gradient(ellipse at 50% 0%,#10b98118,transparent 68%);pointer-events:none}
+    .topbar{position:relative;z-index:1;padding:22px 34px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a303c80;background:#0d0f1270}
+    .status{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9aa4b5}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px #10b981}
+    .top-note{font-size:12px;color:#737e90}
+    .workspace{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;padding:38px 24px 28px}
+    .player{width:min(100%,540px);display:flex;flex-direction:column;align-items:center}
+    .cover-wrap{width:min(310px,68vw);aspect-ratio:1;position:relative;margin-bottom:30px}
+    .cover-glow{position:absolute;inset:-13px;border-radius:30px;background:linear-gradient(135deg,var(--green),var(--cyan));filter:blur(32px);opacity:.22;transition:opacity .4s}
+    .cover-wrap:hover .cover-glow{opacity:.4}
+    #playerCover{position:relative;width:100%;height:100%;object-fit:cover;border-radius:23px;border:1px solid #ffffff20;box-shadow:0 25px 70px #0008;background:var(--card)}
+    .eyebrow{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;font-weight:800;color:#34d399;margin-bottom:10px}
+    #playerTitle{font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:-1px;color:white;text-align:center;margin:0 0 8px;max-width:100%;overflow-wrap:anywhere}
+    #playerArtist{font-size:14px;color:#9aa4b5;text-align:center;margin:0 0 28px}
+    .timeline{width:100%;max-width:470px}
+    input[type=range]{appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer}
+    input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--border);border-radius:99px}
+    input[type=range]::-moz-range-track{height:4px;background:var(--border);border-radius:99px}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--green);margin-top:-4.5px;box-shadow:0 0 10px #10b98155}
+    input[type=range]::-moz-range-thumb{width:13px;height:13px;border:0;border-radius:50%;background:var(--green)}
+    #progressBar{width:100%;display:block}
+    .times{display:flex;justify-content:space-between;margin-top:10px;color:#7d8798;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+    .controls{display:flex;align-items:center;justify-content:center;gap:clamp(16px,3vw,30px);margin-top:28px}
+    .control{border:0;background:transparent;color:#8b95a7;padding:9px;font-size:22px;line-height:1;transition:.2s}
+    .control:hover,.control.active{color:#34d399}
+    .skip{font-size:27px;color:#d4dbe6}
+    .play-button{height:64px;width:64px;border:0;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--cyan));color:#06140f;font-size:25px;display:grid;place-items:center;padding-left:4px;box-shadow:0 8px 28px #10b98135;transition:transform .2s}
+    .play-button:hover{transform:scale(1.06)}
+    .bottom{position:relative;z-index:1;border-top:1px solid #2a303c80;display:flex;justify-content:space-between;align-items:center;padding:16px 30px;color:#8b95a7;font-size:11px}
+    .audio-label{display:flex;align-items:center;gap:9px}
+    .audio-icon{color:#34d399;font-size:18px}
+    .volume{display:flex;align-items:center;gap:12px;width:180px}
+    #volumeBar{width:100%}
+    .empty{padding:28px 12px;text-align:center;color:#778195;font-size:13px}
+    .mobile-heading{display:none}
+    @media(max-width:800px){
+      .app{flex-direction:column}
+      .sidebar{width:100%;height:42vh;min-height:260px;position:relative;border-right:0;border-bottom:1px solid var(--border)}
+      .brand-row{padding:14px 18px}
+      .brand{font-size:19px}.brand-icon{width:35px;height:35px}
+      .search-wrap{padding:12px 16px 8px}.search-wrap span{top:23px;left:29px}
+      .list-heading{padding:7px 19px 9px}
+      #playlistContainer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:2px;padding:0 10px 12px}
+      .song-item{padding:7px;gap:8px}
+      .thumb{width:38px;height:38px}
+      .song-name{font-size:11px}.song-artist{font-size:10px}
+      .main{min-height:58vh}
+      .topbar{padding:15px 18px}
+      .workspace{padding:28px 20px}
+      .cover-wrap{width:min(230px,54vw);margin-bottom:22px}
+      #playerArtist{margin-bottom:23px}
+      .bottom{padding:13px 18px}
+      .volume{width:125px}
     }
-
-    body {
-      background: radial-gradient(circle at top left, #1a2228, #0d1117, #05070a);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #e6edf3;
-      overflow-x: hidden;
-    }
-
-    /* Pemutar Musik Utama */
-    .player {
-      width: 380px;
-      background: rgba(22, 27, 34, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 28px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      padding: 24px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Header Navbar */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 16px;
-      color: #8b949e;
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .header span.title-app {
-      color: #f0f6fc;
-      letter-spacing: 0.5px;
-      font-weight: 700;
-    }
-
-    .header .icon-btn {
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.04);
-      color: #c9d1d9;
-    }
-
-    .header .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #58a6ff;
-    }
-
-    .now-playing {
-      text-align: center;
-      margin-top: 4px;
-      color: #38bdf8;
-      font-weight: 600;
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    /* Cover Album */
-    .cover-container {
-      width: 220px;
-      height: 220px;
-      margin: 20px auto 16px;
-      position: relative;
-    }
-
-    .cover {
-      width: 100%;
-      height: 100%;
-      border-radius: 20px;
-      object-fit: cover;
-      background: #21262d;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    /* Info Lagu */
-    .title {
-      text-align: center;
-      color: #f0f6fc;
-      font-weight: 700;
-      font-size: 18px;
-      margin-top: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 0 10px;
-    }
-
-    .artist {
-      text-align: center;
-      color: #8b949e;
-      font-size: 14px;
-      margin-top: 4px;
-      margin-bottom: 16px;
-    }
-
-    .artist a {
-      color: #8b949e;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .artist a:hover {
-      color: #58a6ff;
-    }
-
-    /* Tombol Repeat & Shuffle Top */
-    .controls-top {
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      margin-bottom: 12px;
-    }
-
-    .controls-top button {
-      border: none;
-      outline: none;
-      background: transparent;
-      color: #8b949e;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .controls-top button:hover {
-      color: #58a6ff;
-    }
-
-    /* Visualizer & Progress Bar */
-    .progress-visualizer {
-      position: relative;
-      width: 100%;
-      height: 55px;
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    #visualizer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 40px;
-      background: transparent;
-      z-index: 1;
-      opacity: 0.6;
-    }
-
-    .progress-container {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #8b949e;
-      font-size: 12px;
-      gap: 10px;
-    }
-
-    .progress-bar {
-      flex: 1;
-      accent-color: #38bdf8;
-      cursor: pointer;
-      height: 4px;
-      border-radius: 2px;
-    }
-
-    /* Tombol Utama Bottom */
-    .controls-bottom {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding-top: 18px;
-    }
-
-    .controls-bottom button {
-      border: none;
-      outline: none;
-      background: transparent;
-      color: #c9d1d9;
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .controls-bottom button:hover {
-      color: #38bdf8;
-      transform: scale(1.1);
-    }
-
-    .controls-bottom .play-btn {
-      width: 60px;
-      height: 60px;
-      font-size: 22px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #38bdf8, #2563eb);
-      color: #ffffff;
-      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
-    }
-
-    .controls-bottom .play-btn:hover {
-      color: #ffffff;
-      transform: scale(1.05);
-      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.45);
-    }
-
-    /* Sidebar Lista Lagu */
-    .sidebar {
-      position: fixed;
-      left: -320px;
-      top: 0;
-      width: 300px;
-      height: 100%;
-      background: rgba(13, 17, 23, 0.95);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      color: #f0f6fc;
-      padding: 24px 20px;
-      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
-      z-index: 999;
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .sidebar.active {
-      left: 0;
-    }
-
-    .sidebar h2 {
-      font-size: 18px;
-      margin-bottom: 16px;
-      font-weight: 700;
-      color: #f0f6fc;
-    }
-
-    .sidebar input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      margin-bottom: 16px;
-      outline: none;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-size: 14px;
-    }
-
-    .sidebar input::placeholder {
-      color: #8b949e;
-    }
-
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .sidebar ul li {
-      padding: 12px 14px;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #c9d1d9;
-      margin-bottom: 4px;
-      transition: all 0.2s;
-    }
-
-    .sidebar ul li:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #38bdf8;
-    }
-
-    .sidebar ul li.active {
-      background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), transparent);
-      color: #38bdf8;
-      font-weight: 600;
-      border-left: 3px solid #38bdf8;
+    @media(max-width:420px){
+      #playlistContainer{grid-template-columns:1fr}
+      .sidebar{height:40vh}
+      .top-note{display:none}
+      .cover-wrap{width:min(190px,52vw)}
+      .controls{gap:13px;margin-top:23px}
+      .play-button{width:57px;height:57px}
+      .control{font-size:19px}.skip{font-size:24px}
+      .bottom{gap:12px}.audio-label span:last-child{max-width:130px}
     }
   </style>
 </head>
 <body>
-
-  <div class="player">
-    <div class="header">
-      <div class="icon-btn" id="menuBtn"><i class="fa-solid fa-bars"></i></div>
-      <span class="title-app">Sepitify</span>
-      <div class="icon-btn" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></div>
-    </div>
-    
-    <div class="now-playing">Now Playing</div>
-    
-    <div class="cover-container">
-      <img src="cover.jpg" alt="Sampul" class="cover" id="cover">
-    </div>
-
-    <div class="title" id="title">Judul Lagu</div>
-    <div class="artist" id="artist">
-      <a href="biodata.html" target="_blank" id="artist-link">Artis</a>
-    </div>
-
-    <div class="controls-top">
-      <button id="repeat" title="Repeat"><i class="fa-solid fa-rotate-right"></i></button>
-      <button id="shuffle" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
-    </div>
-
-    <div class="progress-visualizer">
-      <canvas id="visualizer" width="330" height="40"></canvas>
-      <div class="progress-container">
-        <span id="current-time">0:00</span>
-        <input type="range" id="progress" class="progress-bar" value="0">
-        <span id="duration">0:00</span>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand"><div class="brand-icon">♫</div><span>Sepitify</span></div>
+        <span class="pro">WEB PLAYER</span>
       </div>
-    </div>
-
-    <div class="controls-bottom">
-      <button id="prev"><i class="fa-solid fa-backward-step"></i></button>
-      <button class="play-btn" id="play"><i class="fa-solid fa-play" id="playIcon"></i></button>
-      <button id="next"><i class="fa-solid fa-forward-step"></i></button>
-    </div>
+      <div class="search-wrap"><span>⌕</span><input id="searchInput" type="search" placeholder="Cari lagu atau artis..." autocomplete="off"></div>
+      <div class="list-heading"><span>Daftar Lagu</span><span id="songCount">59 lagu</span></div>
+      <div id="playlistContainer"></div>
+    </aside>
+    <main class="main">
+      <div class="ambient"></div>
+      <header class="topbar">
+        <div class="status"><span class="dot"></span><span>Sedang Diputar</span></div>
+        <div class="top-note">Koleksi musik kamu, dalam satu tempat</div>
+      </header>
+      <section class="workspace">
+        <div class="player">
+          <div class="cover-wrap"><div class="cover-glow"></div><img id="playerCover" src="hindia.jpg" alt="Sampul album"></div>
+          <div class="eyebrow">NOW PLAYING</div>
+          <h1 id="playerTitle">Hindia - Secukupnya</h1>
+          <p id="playerArtist">Hindia</p>
+          <div class="timeline">
+            <input type="range" id="progressBar" min="0" max="100" value="0" aria-label="Posisi lagu">
+            <div class="times"><span id="currentTime">0:00</span><span id="totalDuration">0:00</span></div>
+          </div>
+          <div class="controls">
+            <button class="control" id="shuffleBtn" title="Acak" aria-label="Acak">⤨</button>
+            <button class="control skip" id="prevBtn" title="Lagu sebelumnya" aria-label="Lagu sebelumnya">|◀</button>
+            <button class="play-button" id="playBtn" title="Putar" aria-label="Putar atau jeda">▶</button>
+            <button class="control skip" id="nextBtn" title="Lagu berikutnya" aria-label="Lagu berikutnya">▶|</button>
+            <button class="control" id="repeatBtn" title="Ulangi" aria-label="Ulangi">⟳</button>
+          </div>
+        </div>
+      </section>
+      <footer class="bottom">
+        <div class="audio-label"><span class="audio-icon">♫</span><span>Audio lokal · Sepitify</span></div>
+        <div class="volume"><span id="volumeIcon">🔊</span><input type="range" id="volumeBar" min="0" max="100" value="80" aria-label="Volume"></div>
+      </footer>
+    </main>
   </div>
+  <audio id="audio" preload="metadata"></audio>
+  <script>
+    const songs = [
+  {
+    "title": "Hindia - Secukupnya",
+    "file": "Hindia - Secukupnya Lirik Lagu.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Feast - Nina",
+    "file": "Feast - Nina (Lirik).mp3",
+    "artist": "Feast",
+    "cover": "feast.jpg"
+  },
+  {
+    "title": "Tarot - .Feast",
+    "file": "Tarot - .Feast Lirik Lagu.mp3",
+    "artist": "Feast",
+    "cover": "feast.jpg"
+  },
+  {
+    "title": "Rumah ke Rumah",
+    "file": "Hindia - Rumah ke Rumah Lirik Lagu.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Hindia - Evaluasi",
+    "file": "Hindia.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Kami Belum tentu",
+    "file": "Feast - Kami Belum Tentu (Lirik) - Copy.mp3",
+    "artist": "Feast",
+    "cover": "feast.jpg"
+  },
+  {
+    "title": "Penjaga Hati",
+    "file": "Nadhif Basalamah - penjaga hati (Lirik).mp3",
+    "artist": "Nadhif Basalamah",
+    "cover": "nadhif basmallah.jpg"
+  },
+  {
+    "title": "Mangu",
+    "file": "mangu.mp3",
+    "artist": "Fourtwintyt",
+    "cover": "fourtwinty1.jpg"
+  },
+  {
+    "title": "O Tuan",
+    "file": "O Tuan - \\_.Feast Lirik Lagu.mp3",
+    "artist": "Feast",
+    "cover": "feast.jpg"
+  },
+  {
+    "title": "Hindia - Cincin Lirik Lagu",
+    "file": "Hindia - Cincin Lirik Lagu.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Peradaban",
+    "file": "Feast - Peradaban (lirik).mp3",
+    "artist": "Feast",
+    "cover": "feast.jpg"
+  },
+  {
+    "title": "Hindia - Kita ke Sana",
+    "file": "Hindia - Kita ke Sana Lirik Lagu.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Bergema Sampai Selamanya",
+    "file": "Nadhif Basalamah - Bergema Sampai Selamanya (Lyrics).mp3",
+    "artist": "Nadhif Basalamah",
+    "cover": "nadhif basmallah.jpg"
+  },
+  {
+    "title": "Ghea Indrawari - Jiwa Yang Bersedih",
+    "file": "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3",
+    "artist": "Ghea Indrawari",
+    "cover": "ghea indrawari.jpg"
+  },
+  {
+    "title": "Hindia - everything u are",
+    "file": "Hindia - everything u are Lirik Lagu.mp3",
+    "artist": "Hindia",
+    "cover": "hindia.jpg"
+  },
+  {
+    "title": "Hal - L",
+    "file": "Hal - L (Lirik Lagu Lyrics).mp3",
+    "artist": "Halstage",
+    "cover": "hal.jpg"
+  },
+  {
+    "title": "Lesung Pipi",
+    "file": "Raim Laode - Lesung Pipi (Lirik).mp3",
+    "artist": "Raim Laode",
+    "cover": "raim laode.jpg"
+  },
+  {
+    "title": "Komang",
+    "file": "KOMANG - RAIM LAODE LYRIC OFFICIAL.mp3",
+    "artist": "Raim Laode",
+    "cover": "raim laode.jpg"
+  },
+  {
+    "title": "Pamungkas - Monolog",
+    "file": "Pamungkas - Monolog (Lirik Lagu).mp3",
+    "artist": "Pamungkas",
+    "cover": "pamungkas.jpg"
+  },
+  {
+    "title": "Bunga Abadi",
+    "file": "Rio Clappy - Bunga Abadi (Lirik Lyrics).mp3",
+    "artist": "Rio Clappy",
+    "cover": "rio clappy.jpg"
+  },
+  {
+    "title": "Bunga Maaf",
+    "file": "The Lantis - Bunga Maaf (Lyrics).mp3",
+    "artist": "The Lantis",
+    "cover": "the lantis.jpg"
+  },
+  {
+    "title": "Dewa - Risalah Hati",
+    "file": "Dewa - Risalah Hati - LIRIK LAGU.mp3",
+    "artist": "Dewa",
+    "cover": "dewa 19.jpg"
+  },
+  {
+    "title": "Dewa 19 - Kangen",
+    "file": "Dewa 19 - Kangen - ( Lirik Lagu ).mp3",
+    "artist": "Dewa 19",
+    "cover": "dewa 19.jpg"
+  },
+  {
+    "title": "Dewa 19 - Separuh Nafas",
+    "file": "Dewa 19 - Separuh Nafas (Lirik Lagu).mp3",
+    "artist": "Dewa 19",
+    "cover": "dewa 19.jpg"
+  },
+  {
+    "title": "Lyla - Karena Kamu Cantik",
+    "file": "Lyla - Karena Kamu Cantik Kamu Baik Lirik Lagu.mp3",
+    "artist": "Lyla",
+    "cover": "lyla.jpg"
+  },
+  {
+    "title": "Pupus - Dewa 19",
+    "file": "Pupus - Dewa 19 (Lirik Lagu).mp3",
+    "artist": "Dewa 19",
+    "cover": "dewa 19.jpg"
+  },
+  {
+    "title": "Tulus - Hati-hati di jalan",
+    "file": "Tulus - Hati-hati di jalan Lirik Lagu Indonesia.mp3",
+    "artist": "Tulus",
+    "cover": "tulus.jpg"
+  },
+  {
+    "title": "Manusia Kuat",
+    "file": "Iframe Tulus - Manusia Kuat \\_ Lirik Lagu Indonesia [81qVfHHHTaY].mp3",
+    "artist": "Tulus",
+    "cover": "tulus.jpg"
+  },
+  {
+    "title": "Batas Senja - Nanti Kita Seperti Ini",
+    "file": "Batas Senja - Nanti Kita Seperti Ini (Lirik).mp3",
+    "artist": "Batas Senja",
+    "cover": "batas senja.jpg"
+  },
+  {
+    "title": "For Revenge - Jakarta Hari Ini",
+    "file": "For Revenge - Jakarta Hari Ini Lirik Lagu.mp3",
+    "artist": "For Revenge",
+    "cover": "for revenge.jpg"
+  },
+  {
+    "title": "Kelingan Mantan - NDX A.K.A",
+    "file": "Kelingan Mantan - NDX A.K.A.mp3",
+    "artist": "NDX A.K.A",
+    "cover": "ndx aka.jpg"
+  },
+  {
+    "title": "Di Bawah Langit Yang Sama",
+    "file": "dibawah langit yang sama.mp3",
+    "artist": "D'Masiv",
+    "cover": "d masiv.jpg"
+  },
+  {
+    "title": "Round And Round Songs",
+    "file": "Mingle Game Song “Round and Round” (Lyrics) Squid Game.mp3",
+    "artist": "Iyaz",
+    "cover": "round.jpg"
+  },
+  {
+    "title": "Virgoun - Selamat Tinggal",
+    "file": "Virgoun - Selamat (Selamat Tinggal) ft Audy Lirik Lagu.mp3",
+    "artist": "Virgoun ft Audy",
+    "cover": "virgoun.jpg"
+  },
+  {
+    "title": "Geisha - Karena Kamu",
+    "file": "Geisha - Karena Kamu (Lyrics).mp3",
+    "artist": "Geisha",
+    "cover": "geisha.jpg"
+  },
+  {
+    "title": "Mark G - Never Let You Go",
+    "file": "Mark G - Never Let You Go.mp3",
+    "artist": "Mark-G",
+    "cover": "mark g.jpg"
+  },
+  {
+    "title": "Baby - Justin Bieber",
+    "file": "Baby - Justin Bieber feat. Ludacris (Lirik Lagu Terjemahan).mp3",
+    "artist": "Justin Bieber",
+    "cover": "justin bieber.jpg"
+  },
+  {
+    "title": "Night Changes - One Direction",
+    "file": "Night Changes - One Direction (Lirik Lagu Terjemahan).mp3",
+    "artist": "One Direction",
+    "cover": "one direction.jpg"
+  },
+  {
+    "title": "Avicii - The Nights",
+    "file": "Iframe Avicii - The Nights (Lyrics) \\_my father told me\\_ [H78YW7ycuwI].mp3",
+    "artist": "Avicii",
+    "cover": "avicii.jpg"
+  },
+  {
+    "title": "Somebody's Pleasure - Aziz Hedra",
+    "file": "Iframe Aziz Hedra - Somebody's Pleasure (Lyrics) [zawDTvoXT8k].mp3",
+    "artist": "Aziz Hedra",
+    "cover": "aziz hedra.jpg"
+  },
+  {
+    "title": "Be Alright - Dean Lewis",
+    "file": "Iframe Dean Lewis - Be Alright (Lyrics) [c8L-ZoKNENU].mp3",
+    "artist": "Dean Lewis",
+    "cover": "dean lewis.jpg"
+  },
+  {
+    "title": "Jar Of Hearts - Christina Perri",
+    "file": "Iframe Jar of Hearts - Christina Perri (Lyrics video dan terjemahan) [hTdwEMBB62w] (1).mp3",
+    "artist": "Christina Perri",
+    "cover": "christina Perri.jpg"
+  },
+  {
+    "title": "Payphone - Maroon 5",
+    "file": "Iframe Payphone - Maroon 5 ft. Wiz Khalifa (Lyrics video dan terjemahan) [ZWmfm5vmqvk].mp3",
+    "artist": "Maroon 5",
+    "cover": "maroon 5.jpg"
+  },
+  {
+    "title": "Rewrite The Stars - James Arthur & Anne Marie",
+    "file": "Iframe Rewrite The Stars - James Arthur feat. Anne Marie [Lyrics_Vietsub] [HiYMlQoFz6c].mp3",
+    "artist": "James Arthur & Anne Marie",
+    "cover": "james Arthur & Anne Marie.jpg"
+  },
+  {
+    "title": "8 Letters - Why Don't We",
+    "file": "Iframe Vietsub \\_ 8 Letters - Why Don't We \\_ Nhạc Hot TikTok \\_ Lyrics Video [8yamg7y-Jv0].mp3",
+    "artist": "Why Don't We",
+    "cover": "why don't we.jpg"
+  },
+  {
+    "title": "Where We Are - One Direction",
+    "file": "Iframe Where We Are - One Direction \\_\\_ Lyrics Tiktok Version [yYxMH3twnjk].mp3",
+    "artist": "One Direction",
+    "cover": "one direction.jpg"
+  },
+  {
+    "title": "Akon - Lonely",
+    "file": "Akon - Lonely.mp3",
+    "artist": "Akon",
+    "cover": "akon.jpg"
+  },
+  {
+    "title": "Akon - Don't Matter",
+    "file": "Akon - Don't Matter (Lyrics).mp3",
+    "artist": "Akon",
+    "cover": "akon.jpg"
+  },
+  {
+    "title": "Alan Walker - All Falls Down",
+    "file": "Alan Walker - All Falls Down (Lyrics Lyric Video) feat. Noah Cyrus & Digital Farm Animals.mp3",
+    "artist": "Alan Walker",
+    "cover": "alan walker.jpg"
+  },
+  {
+    "title": "Alan Walker - Alone",
+    "file": "Alan Walker - Alone (Lyrics).mp3",
+    "artist": "Alan Walker",
+    "cover": "alan walker.jpg"
+  },
+  {
+    "title": "Ed Sheeran - Perfect",
+    "file": "Ed Sheeran - Perfect.mp3",
+    "artist": "Ed Sheeran",
+    "cover": "ed sheeran.jpg"
+  },
+  {
+    "title": "Justin Bieber - Ghost",
+    "file": "Justin Bieber - Ghost (Lyrics).mp3",
+    "artist": "Justin Bieber",
+    "cover": "justin bieber.jpg"
+  },
+  {
+    "title": "Lily - Alan Walker K-391 & Emelie Hollow",
+    "file": "Lily - Alan Walker K-391 & Emelie Hollow (Lirik Lagu Terjemahan).mp3",
+    "artist": "Alan Walker",
+    "cover": "alan walker.jpg"
+  },
+  {
+    "title": "Pamungkas - To The Bone",
+    "file": "To The Bone - Pamungkas (Lirik Lagu & Terjemahan).mp3",
+    "artist": "Pamungkas",
+    "cover": "pamungkas.jpg"
+  },
+  {
+    "title": "Ruth B. - Dandelions",
+    "file": "Ruth B. - Dandelions (Lyrics).mp3",
+    "artist": "Ruth B.",
+    "cover": "ruth b..jpg"
+  },
+  {
+    "title": "Mood",
+    "file": "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3",
+    "artist": "24kGoldn",
+    "cover": "24kgoldn.jpg"
+  },
+  {
+    "title": "Replay",
+    "file": "Iframe Iyaz - Replay \\_ Lyrics [GqYj_f9gVqM].mp3",
+    "artist": "Iyaz",
+    "cover": "iyaz.jpg"
+  },
+  {
+    "title": "Beauty And A Beat",
+    "file": "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3",
+    "artist": "Justin Bieber ft Nicki Minaj",
+    "cover": "justin bieber.jpg"
+  },
+  {
+    "title": "Tie Me Down",
+    "file": "Tie me down.mp3",
+    "artist": "Gryffin, Elley Duhé",
+    "cover": "te me down.jpg"
+  }
+];
 
-  <div id="sidebar" class="sidebar">
-    <h2>Daftar Lagu</h2>
-    <input type="text" id="search" placeholder="Cari lagu...">
-    <ul id="songList"></ul>
-  </div>
+    let currentSongIndex = 0;
+    let isPlaying = false;
+    let isShuffle = false;
+    let repeatMode = 0; // 0 = mati, 1 = ulangi semua, 2 = ulangi satu
+    const audio = document.getElementById('audio');
+    const playlistContainer = document.getElementById('playlistContainer');
+    const searchInput = document.getElementById('searchInput');
+    const playerCover = document.getElementById('playerCover');
+    const playerTitle = document.getElementById('playerTitle');
+    const playerArtist = document.getElementById('playerArtist');
+    const playBtn = document.getElementById('playBtn');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeEl = document.getElementById('currentTime');
+    const totalDurationEl = document.getElementById('totalDuration');
+    const songCountEl = document.getElementById('songCount');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
 
-<script>
-  const songs = [
-      { title: "Hindia - Secukupnya", file: "Hindia - Secukupnya Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Feast - Nina", file: "Feast - Nina (Lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Tarot - .Feast", file: "Tarot - .Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Rumah ke Rumah", file: "Hindia - Rumah ke Rumah Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Hindia - Evaluasi", file: "Hindia.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Kami Belum tentu", file: "Feast - Kami Belum Tentu (Lirik) - Copy.mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Penjaga Hati", file: "Nadhif Basalamah - penjaga hati (Lirik).mp3", artist: "Nadhif Basalamah", cover: "nadhif basmallah.jpg" },
-      { title: "Mangu", file: "mangu.mp3", artist: "Fourtwintyt", cover: "fourtwinty1.jpg" },
-      { title: "O Tuan", file: "O Tuan - _.Feast Lirik Lagu.mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Hindia - Cincin Lirik Lagu", file: "Hindia - Cincin Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Peradaban", file: "Feast - Peradaban (lirik).mp3", artist: "Feast", cover: "feast.jpg" },
-      { title: "Hindia - Kita ke Sana", file: "Hindia - Kita ke Sana Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Bergema Sampai Selamanya", file: "Nadhif Basalamah - Bergema Sampai Selamanya (Lyrics).mp3", artist: "Nadhif Basalamah", cover: "nadhif basmallah.jpg" },
-      { title: "Ghea Indrawari - Jiwa Yang Bersedih", file: "Ghea Indrawari - Jiwa Yang Bersedih (Lirik).mp3", artist: "Ghea Indrawari", cover: "ghea indrawari.jpg" },
-      { title: "Hindia - everything u are", file: "Hindia - everything u are Lirik Lagu.mp3", artist: "Hindia", cover: "hindia.jpg" },
-      { title: "Hal - L", file: "Hal - L (Lirik Lagu Lyrics).mp3", artist: "Halstage", cover: "hal.jpg" },
-      { title: "Lesung Pipi", file: "Raim Laode - Lesung Pipi (Lirik).mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
-      { title: "Komang", file: "KOMANG - RAIM LAODE LYRIC OFFICIAL.mp3", artist: "Raim Laode", cover: "raim laode.jpg" },
-      { title: "Pamungkas - Monolog", file: "Pamungkas - Monolog (Lirik Lagu).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
-      { title: "Bunga Abadi", file: "Rio Clappy - Bunga Abadi (Lirik Lyrics).mp3", artist: "Rio Clappy", cover: "rio clappy.jpg" },
-      { title: "Bunga Maaf", file: "The Lantis - Bunga Maaf (Lyrics).mp3", artist: "The Lantis", cover: "the lantis.jpg" },
-      { title: "Dewa - Risalah Hati", file: "Dewa - Risalah Hati - LIRIK LAGU.mp3", artist: "Dewa", cover: "dewa 19.jpg" },
-      { title: "Dewa 19 - Kangen", file: "Dewa 19 - Kangen - ( Lirik Lagu ).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-      { title: "Dewa 19 - Separuh Nafas", file: "Dewa 19 - Separuh Nafas (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-      { title: "Lyla - Karena Kamu Cantik", file: "Lyla - Karena Kamu Cantik Kamu Baik Lirik Lagu.mp3", artist: "Lyla", cover: "lyla.jpg" },
-      { title: "Pupus - Dewa 19", file: "Pupus - Dewa 19 (Lirik Lagu).mp3", artist: "Dewa 19", cover: "dewa 19.jpg" },
-      { title: "Tulus - Hati-hati di jalan", file: "Tulus - Hati-hati di jalan Lirik Lagu Indonesia.mp3", artist: "Tulus", cover: "tulus.jpg" },
-      { title: "Manusia Kuat", file: "Iframe Tulus - Manusia Kuat _ Lirik Lagu Indonesia [81qVfHHHTaY].mp3", artist: "Tulus", cover: "tulus.jpg" },
-      { title: "Batas Senja - Nanti Kita Seperti Ini", file: "Batas Senja - Nanti Kita Seperti Ini (Lirik).mp3", artist: "Batas Senja", cover: "batas senja.jpg" },
-      { title: "For Revenge - Jakarta Hari Ini", file: "For Revenge - Jakarta Hari Ini Lirik Lagu.mp3", artist: "For Revenge", cover: "for revenge.jpg" },
-      { title: "Kelingan Mantan - NDX A.K.A", file: "Kelingan Mantan - NDX A.K.A.mp3", artist: "NDX A.K.A", cover: "ndx aka.jpg" },
-      { title: "Di Bawah Langit Yang Sama", file: "dibawah langit yang sama.mp3", artist: "D'Masiv", cover: "d masiv.jpg" },
-      { title: "Round And Round Songs", file: "Mingle Game Song “Round and Round” (Lyrics) Squid Game.mp3", artist: "Iyaz", cover: "round.jpg" },
-      { title: "Virgoun - Selamat Tinggal", file: "Virgoun - Selamat (Selamat Tinggal) ft Audy Lirik Lagu.mp3", artist: "Virgoun ft Audy", cover: "virgoun.jpg" },
-      { title: "Geisha - Karena Kamu", file: "Geisha - Karena Kamu (Lyrics).mp3", artist: "Geisha", cover: "geisha.jpg" },
-      { title: "Mark G - Never Let You Go", file: "Mark G - Never Let You Go.mp3", artist: "Mark-G", cover: "mark g.jpg" },
-      { title: "Baby - Justin Bieber", file: "Baby - Justin Bieber feat. Ludacris (Lirik Lagu Terjemahan).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
-      { title: "Night Changes - One Direction", file: "Night Changes - One Direction (Lirik Lagu Terjemahan).mp3", artist: "One Direction", cover: "one direction.jpg" },
-      { title: "Avicii - The Nights", file: "Iframe Avicii - The Nights (Lyrics) _my father told me_ [H78YW7ycuwI].mp3", artist: "Avicii", cover: "avicii.jpg" },
-      { title: "Somebody's Pleasure - Aziz Hedra", file: "Iframe Aziz Hedra - Somebody's Pleasure (Lyrics) [zawDTvoXT8k].mp3", artist: "Aziz Hedra", cover: "aziz hedra.jpg" },
-      { title: "Be Alright - Dean Lewis", file: "Iframe Dean Lewis - Be Alright (Lyrics) [c8L-ZoKNENU].mp3", artist: "Dean Lewis", cover: "dean lewis.jpg" },
-      { title: "Jar Of Hearts - Christina Perri", file: "Iframe Jar of Hearts - Christina Perri (Lyrics video dan terjemahan) [hTdwEMBB62w] (1).mp3", artist: "Christina Perri", cover: "christina Perri.jpg" },
-      { title: "Payphone - Maroon 5", file: "Iframe Payphone - Maroon 5 ft. Wiz Khalifa (Lyrics video dan terjemahan) [ZWmfm5vmqvk].mp3", artist: "Maroon 5", cover: "maroon 5.jpg" },
-      { title: "Rewrite The Stars - James Arthur & Anne Marie", file: "Iframe Rewrite The Stars - James Arthur feat. Anne Marie [Lyrics_Vietsub] [HiYMlQoFz6c].mp3", artist: "James Arthur & Anne Marie", cover: "james Arthur & Anne Marie.jpg" },
-      { title: "8 Letters - Why Don't We", file: "Iframe Vietsub _ 8 Letters - Why Don't We _ Nhạc Hot TikTok _ Lyrics Video [8yamg7y-Jv0].mp3", artist: "Why Don't We", cover: "why don't we.jpg" },
-      { title: "Where We Are - One Direction", file: "Iframe Where We Are - One Direction __ Lyrics Tiktok Version [yYxMH3twnjk].mp3", artist: "One Direction", cover: "one direction.jpg" },
-      { title: "Akon - Lonely", file: "Akon - Lonely.mp3", artist: "Akon", cover: "akon.jpg" },
-      { title: "Akon - Don't Matter", file: "Akon - Don't Matter (Lyrics).mp3", artist: "Akon", cover: "akon.jpg" },
-      { title: "Alan Walker - All Falls Down", file: "Alan Walker - All Falls Down (Lyrics Lyric Video) feat. Noah Cyrus & Digital Farm Animals.mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-      { title: "Alan Walker - Alone", file: "Alan Walker - Alone (Lyrics).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-      { title: "Ed Sheeran - Perfect", file: "Ed Sheeran - Perfect.mp3", artist: "Ed Sheeran", cover: "ed sheeran.jpg" },
-      { title: "Justin Bieber - Ghost", file: "Justin Bieber - Ghost (Lyrics).mp3", artist: "Justin Bieber", cover: "justin bieber.jpg" },
-      { title: "Lily - Alan Walker K-391 & Emelie Hollow", file: "Lily - Alan Walker K-391 & Emelie Hollow (Lirik Lagu Terjemahan).mp3", artist: "Alan Walker", cover: "alan walker.jpg" },
-      { title: "Pamungkas - To The Bone", file: "To The Bone - Pamungkas (Lirik Lagu & Terjemahan).mp3", artist: "Pamungkas", cover: "pamungkas.jpg" },
-      { title: "Ruth B. - Dandelions", file: "Ruth B. - Dandelions (Lyrics).mp3", artist: "Ruth B.", cover: "ruth b..jpg" },
-      { title: "Mood", file: "Iframe 24kGoldn - Mood Remix (Lyrics) ft. Justin Bieber, J Balvin, Iann Dior [f1J4dRTMy9A].mp3", artist: "24kGoldn", cover: "24kgoldn.jpg" },
-      { title: "Replay", file: "Iframe Iyaz - Replay _ Lyrics [GqYj_f9gVqM].mp3", artist: "Iyaz", cover: "iyaz.jpg" },
-      { title: "Beauty And A Beat", file: "Iframe Justin Bieber, Nicki Minaj – Beauty And A Beat (Lyrics) [J9abt3xpdDU].mp3", artist: "Justin Bieber ft Nicki Minaj", cover: "justin bieber.jpg" },
-      { title: "Tie Me Down", file: "Tie me down.mp3", artist: "Gryffin, Elley Duhé", cover: "te me down.jpg" }
-  ];
-
-  let index = 0, isPlaying = false;
-  const audio = new Audio();
-  const playBtn = document.getElementById("play");
-  const playIcon = document.getElementById("playIcon");
-  const titleEl = document.getElementById("title");
-  const artistLinkEl = document.getElementById("artist-link");
-  const coverEl = document.getElementById("cover");
-  const progress = document.getElementById("progress");
-  const currentTimeEl = document.getElementById("current-time");
-  const durationEl = document.getElementById("duration");
-  const sidebar = document.getElementById("sidebar");
-  const songList = document.getElementById("songList");
-  const search = document.getElementById("search");
-  const menuBtn = document.getElementById("menuBtn");
-  const searchBtn = document.getElementById("searchBtn");
-
-  const toggleSidebar = () => {
-    sidebar.classList.toggle("active");
-    if(sidebar.classList.contains("active")) {
-      search.focus();
+    function secondsToTime(seconds) {
+      if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${String(secs).padStart(2, '0')}`;
     }
-  };
 
-  menuBtn.addEventListener("click", toggleSidebar);
-  searchBtn.addEventListener("click", toggleSidebar);
-
-  function loadSong(i) {
-    audio.src = songs[i].file;
-    titleEl.textContent = songs[i].title;
-    artistLinkEl.textContent = songs[i].artist;
-    artistLinkEl.href = "biodata.html";
-    coverEl.src = songs[i].cover;
-
-    document.querySelectorAll("#songList li").forEach(li => li.classList.remove("active"));
-    if (songList.children[i]) songList.children[i].classList.add("active");
-
-    updateMediaSession(songs[i]);
-  }
-
-  function playSong() { 
-    isPlaying = true; 
-    audio.play(); 
-    playIcon.className = "fa-solid fa-pause";
-  }
-
-  function pauseSong() { 
-    isPlaying = false; 
-    audio.pause(); 
-    playIcon.className = "fa-solid fa-play";
-  }
-
-  playBtn.addEventListener("click", () => { isPlaying ? pauseSong() : playSong(); });
-  document.getElementById("next").addEventListener("click", () => { nextSong(); });
-  document.getElementById("prev").addEventListener("click", () => { prevSong(); });
-
-  function nextSong() { index = (index + 1) % songs.length; loadSong(index); playSong(); }
-  function prevSong() { index = (index - 1 + songs.length) % songs.length; loadSong(index); playSong(); }
-
-  audio.addEventListener("timeupdate", () => {
-    progress.value = (audio.currentTime / audio.duration) * 100 || 0;
-    let m = Math.floor(audio.currentTime / 60), s = Math.floor(audio.currentTime % 60);
-    if (s < 10) s = "0" + s;
-    currentTimeEl.textContent = `${m}:${s}`;
-    let dm = Math.floor(audio.duration / 60), ds = Math.floor(audio.duration % 60);
-    if (ds < 10) ds = "0" + ds;
-    if (!isNaN(dm)) durationEl.textContent = `${dm}:${ds}`;
-  });
-
-  progress.addEventListener("input", () => { audio.currentTime = (progress.value / 100) * audio.duration; });
-  audio.addEventListener("ended", () => { nextSong(); });
-
-  function renderSongs(list) {
-    songList.innerHTML = "";
-    list.forEach((song) => {
-      const li = document.createElement("li");
-      li.textContent = song.title;
-      li.addEventListener("click", () => {
-        index = songs.indexOf(song);
-        loadSong(index);
-        playSong();
-        sidebar.classList.remove("active");
+    function renderPlaylist(list) {
+      playlistContainer.innerHTML = '';
+      songCountEl.textContent = `${list.length} dari ${songs.length} lagu`;
+      if (!list.length) {
+        playlistContainer.innerHTML = '<div class="empty">Lagu tidak ditemukan.</div>';
+        return;
+      }
+      list.forEach(song => {
+        const index = songs.indexOf(song);
+        const item = document.createElement('div');
+        item.className = `song-item${index === currentSongIndex ? ' active' : ''}`;
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.innerHTML = `
+          <img class="thumb" src="${escapeAttribute(song.cover)}" alt="" onerror="this.style.opacity='.35'">
+          <div class="song-meta">
+            <div class="song-name" title="${escapeAttribute(song.title)}">${escapeHTML(song.title)}</div>
+            <div class="song-artist">${escapeHTML(song.artist)}</div>
+          </div>
+          <span class="playing-bars">${index === currentSongIndex && isPlaying ? '♫' : ''}</span>`;
+        item.addEventListener('click', () => selectSong(index, true));
+        item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSong(index, true); }});
+        playlistContainer.appendChild(item);
       });
-      songList.appendChild(li);
-    });
-  }
-
-  search.addEventListener("input", () => {
-    const keyword = search.value.toLowerCase();
-    const filtered = songs.filter(song => song.title.toLowerCase().includes(keyword));
-    renderSongs(filtered);
-  });
-
-  function updateMediaSession(song) {
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: song.title,
-        artist: song.artist,
-        album: "Sepitify",
-        artwork: [{ src: song.cover, sizes: "512x512", type: "image/jpg" }]
-      });
-      navigator.mediaSession.setActionHandler("play", playSong);
-      navigator.mediaSession.setActionHandler("pause", pauseSong);
-      navigator.mediaSession.setActionHandler("previoustrack", prevSong);
-      navigator.mediaSession.setActionHandler("nexttrack", nextSong);
     }
-  }
 
-  const canvas = document.getElementById("visualizer");
-  const ctx = canvas.getContext("2d");
-  let audioCtx, analyser, dataArray, bufferLength;
-
-  function initVisualizer() {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 128;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-
-    const source = audioCtx.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-  }
-
-  function drawVisualizer() {
-    requestAnimationFrame(drawVisualizer);
-    if(!analyser) return;
-
-    analyser.getByteFrequencyData(dataArray);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const barWidth = (canvas.width / bufferLength) * 1.8;
-    let barHeight, x = 0;
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "rgba(56, 189, 248, 0.8)");
-    gradient.addColorStop(1, "rgba(37, 99, 235, 0.2)");
-    ctx.fillStyle = gradient;
-
-    for (let i = 0; i < bufferLength; i++) {
-      barHeight = (dataArray[i] / 255) * canvas.height;
-      ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-      x += barWidth + 2;
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
     }
-  }
-
-  audio.addEventListener("play", () => {
-    if (!audioCtx) {
-      initVisualizer();
+    function escapeAttribute(value) { return escapeHTML(value); }
+    function filteredSongs() {
+      const query = searchInput.value.trim().toLowerCase();
+      return songs.filter(song => song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query));
     }
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    drawVisualizer();
-  });
 
-  renderSongs(songs);
-  loadSong(index);
+    function selectSong(index, autoplay = false) {
+      currentSongIndex = (index + songs.length) % songs.length;
+      const song = songs[currentSongIndex];
+      audio.src = song.file;
+      playerCover.src = song.cover;
+      playerCover.alt = `Sampul ${song.title}`;
+      playerTitle.textContent = song.title;
+      playerArtist.textContent = song.artist;
+      currentTimeEl.textContent = '0:00';
+      totalDurationEl.textContent = '0:00';
+      progressBar.value = 0;
+      renderPlaylist(filteredSongs());
+      if ('mediaSession' in navigator && 'MediaMetadata' in window) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: song.title, artist: song.artist, album: 'Sepitify',
+          artwork: [{src: song.cover, sizes: '512x512', type: 'image/jpeg'}]
+        });
+      }
+      if (autoplay) playAudio();
+    }
 
-  function updateURLHash(title) {
-    const hash = title.toLowerCase().replace(/\s+/g, "-");
-    history.replaceState(null, null, "#" + hash);
-  }
+    async function playAudio() {
+      try {
+        await audio.play();
+        isPlaying = true;
+        playBtn.textContent = 'Ⅱ';
+        playBtn.title = 'Jeda';
+      } catch (error) {
+        isPlaying = false;
+        playBtn.textContent = '▶';
+        console.warn('Lagu tidak dapat diputar. Periksa nama dan lokasi file audio:', error);
+      }
+      renderPlaylist(filteredSongs());
+    }
 
-  const originalLoadSong = loadSong;
-  loadSong = function(i) {
-    originalLoadSong(i);
-    updateURLHash(songs[i].title);
-  };
+    function pauseAudio() {
+      audio.pause();
+      isPlaying = false;
+      playBtn.textContent = '▶';
+      playBtn.title = 'Putar';
+      renderPlaylist(filteredSongs());
+    }
 
-  window.addEventListener("load", () => {
-    const hash = decodeURIComponent(window.location.hash.substring(1));
-    if (hash) {
-      const idx = songs.findIndex(song => 
-        song.title.toLowerCase().replace(/\s+/g, "-") === hash.toLowerCase() ||
-        song.title.toLowerCase() === hash.toLowerCase()
-      );
-      if (idx !== -1) {
-        index = idx;
-        loadSong(index);
-        playSong();
+    function togglePlay() {
+      if (isPlaying) pauseAudio();
+      else playAudio();
+    }
+
+    function nextTrack() {
+      if (isShuffle && songs.length > 1) {
+        let nextIndex;
+        do { nextIndex = Math.floor(Math.random() * songs.length); } while (nextIndex === currentSongIndex);
+        selectSong(nextIndex, true);
+      } else if (repeatMode === 2) {
+        audio.currentTime = 0;
+        playAudio();
+      } else {
+        const atEnd = currentSongIndex === songs.length - 1;
+        if (atEnd && repeatMode === 0) {
+          pauseAudio();
+          audio.currentTime = 0;
+          progressBar.value = 0;
+          currentTimeEl.textContent = '0:00';
+          return;
+        }
+        selectSong((currentSongIndex + 1) % songs.length, true);
       }
     }
-  });
-</script>
+
+    function prevTrack() {
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        return;
+      }
+      selectSong((currentSongIndex - 1 + songs.length) % songs.length, true);
+    }
+
+    playBtn.addEventListener('click', togglePlay);
+    document.getElementById('nextBtn').addEventListener('click', nextTrack);
+    document.getElementById('prevBtn').addEventListener('click', prevTrack);
+    shuffleBtn.addEventListener('click', () => {
+      isShuffle = !isShuffle;
+      shuffleBtn.classList.toggle('active', isShuffle);
+      shuffleBtn.title = isShuffle ? 'Acak aktif' : 'Acak';
+    });
+    repeatBtn.addEventListener('click', () => {
+      repeatMode = (repeatMode + 1) % 3;
+      repeatBtn.classList.toggle('active', repeatMode !== 0);
+      repeatBtn.textContent = repeatMode === 2 ? '⟳¹' : '⟳';
+      repeatBtn.title = ['Ulangi mati', 'Ulangi semua', 'Ulangi satu'][repeatMode];
+    });
+    searchInput.addEventListener('input', () => renderPlaylist(filteredSongs()));
+    progressBar.addEventListener('input', () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        audio.currentTime = (Number(progressBar.value) / 100) * audio.duration;
+      }
+    });
+    audio.addEventListener('loadedmetadata', () => {
+      totalDurationEl.textContent = secondsToTime(audio.duration);
+    });
+    audio.addEventListener('timeupdate', () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        progressBar.value = (audio.currentTime / audio.duration) * 100;
+        currentTimeEl.textContent = secondsToTime(audio.currentTime);
+        totalDurationEl.textContent = secondsToTime(audio.duration);
+      }
+    });
+    audio.addEventListener('play', () => {
+      isPlaying = true; playBtn.textContent = 'Ⅱ'; renderPlaylist(filteredSongs());
+      if ('mediaSession' in navigator) {
+        try { navigator.mediaSession.setActionHandler('play', playAudio); navigator.mediaSession.setActionHandler('pause', pauseAudio); navigator.mediaSession.setActionHandler('previoustrack', prevTrack); navigator.mediaSession.setActionHandler('nexttrack', nextTrack); } catch (_) {}
+      }
+    });
+    audio.addEventListener('pause', () => {
+      isPlaying = false; playBtn.textContent = '▶'; renderPlaylist(filteredSongs());
+    });
+    audio.addEventListener('ended', () => {
+      if (repeatMode === 2) { audio.currentTime = 0; playAudio(); }
+      else if (currentSongIndex < songs.length - 1 || repeatMode === 1 || isShuffle) nextTrack();
+      else { progressBar.value = 0; currentTimeEl.textContent = '0:00'; }
+    });
+    audio.addEventListener('error', () => {
+      console.warn(`File audio tidak ditemukan atau tidak dapat dibaca: ${songs[currentSongIndex].file}`);
+    });
+    const volumeBar = document.getElementById('volumeBar');
+    const volumeIcon = document.getElementById('volumeIcon');
+    audio.volume = Number(volumeBar.value) / 100;
+    volumeBar.addEventListener('input', () => {
+      audio.volume = Number(volumeBar.value) / 100;
+      volumeIcon.textContent = audio.volume === 0 ? '🔇' : audio.volume < 0.5 ? '🔉' : '🔊';
+    });
+    volumeIcon.addEventListener('click', () => {
+      if (audio.volume > 0) {
+        audio.dataset.previousVolume = audio.volume;
+        audio.volume = 0; volumeBar.value = 0; volumeIcon.textContent = '🔇';
+      } else {
+        audio.volume = Number(audio.dataset.previousVolume || 0.8);
+        volumeBar.value = audio.volume * 100; volumeIcon.textContent = '🔊';
+      }
+    });
+
+    renderPlaylist(songs);
+    selectSong(0);
+  </script>
 </body>
 </html>
