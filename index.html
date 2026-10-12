@@ -4,97 +4,351 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sepitify</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-    * {margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
-    body {background:#4DB6AC;display:flex;justify-content:center;align-items:center;min-height:100vh}
-    .player {width:400px;background:#263238;border-radius:10px;box-shadow:0px 0px 20px rgba(0,0,0,0.3);overflow:hidden;position:relative;z-index:1}
-    .header {display:flex;justify-content:space-between;align-items:center;padding:15px 20px;color:white;font-weight:600}
-    .header span {cursor:pointer}
-    .now-playing {text-align:center;margin-top:10px;color:hsl(174, 42%, 51%);font-weight:600}
-    .cover {display:block;margin:15px auto;width:150px;height:150px;border-radius:10px;object-fit:cover;background:#37474F}
-    .title {text-align:center;color:white;font-weight:600;margin-top:5px}
-    .artist {text-align:center;color:#B0BEC5;font-size:14px;margin-bottom:15px}
-    .artist a {color: inherit;text-decoration: none;cursor: pointer;}
-    .artist a:hover {text-decoration: underline;}
-    .controls-top {display:flex;justify-content:center;gap:20px;padding:10px}
-    .controls-top button,.controls-bottom button {border:none;outline:none;background:white;border-radius:8px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0px 2px 4px rgba(0,0,0,0.3)}
-    .progress-visualizer {position: relative;width: 100%;height: 60px;margin-top: 10px;}
-    #visualizer {
-      position: absolute;
-      top: 0;left: 0;
-      width: 100%;height: 60px;
-      background: transparent;
-      border-radius: 8px;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #1a2228, #0d1117, #05070a);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #e6edf3;
+      overflow-x: hidden;
+    }
+
+    /* Pemutar Musik Utama */
+    .player {
+      width: 380px;
+      background: rgba(22, 27, 34, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      padding: 24px;
+      position: relative;
       z-index: 1;
     }
-    .progress-container {position: relative;z-index: 2;display: flex;align-items: center;padding: 0 15px;color: white;font-size: 12px;height: 60px;}
-    .progress-bar {flex:1;margin:0 10px}
-    input[type="range"] {width:100%}
-    .controls-bottom {display:flex;justify-content:space-around;align-items:center;padding:15px}
-    .controls-bottom .play-btn {width:70px;height:70px;font-size:30px;border-radius:50%}
+
+    /* Header Navbar */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      color: #8b949e;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .header span.title-app {
+      color: #f0f6fc;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+
+    .header .icon-btn {
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.04);
+      color: #c9d1d9;
+    }
+
+    .header .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #58a6ff;
+    }
+
+    .now-playing {
+      text-align: center;
+      margin-top: 4px;
+      color: #38bdf8;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Cover Album */
+    .cover-container {
+      width: 220px;
+      height: 220px;
+      margin: 20px auto 16px;
+      position: relative;
+    }
+
+    .cover {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      object-fit: cover;
+      background: #21262d;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Info Lagu */
+    .title {
+      text-align: center;
+      color: #f0f6fc;
+      font-weight: 700;
+      font-size: 18px;
+      margin-top: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+    }
+
+    .artist {
+      text-align: center;
+      color: #8b949e;
+      font-size: 14px;
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+
+    .artist a {
+      color: #8b949e;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .artist a:hover {
+      color: #58a6ff;
+    }
+
+    /* Tombol Repeat & Shuffle Top */
+    .controls-top {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+
+    .controls-top button {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #8b949e;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .controls-top button:hover {
+      color: #58a6ff;
+    }
+
+    /* Visualizer & Progress Bar */
+    .progress-visualizer {
+      position: relative;
+      width: 100%;
+      height: 55px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    #visualizer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      background: transparent;
+      z-index: 1;
+      opacity: 0.6;
+    }
+
+    .progress-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #8b949e;
+      font-size: 12px;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      accent-color: #38bdf8;
+      cursor: pointer;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    /* Tombol Utama Bottom */
+    .controls-bottom {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-top: 18px;
+    }
+
+    .controls-bottom button {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #c9d1d9;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .controls-bottom button:hover {
+      color: #38bdf8;
+      transform: scale(1.1);
+    }
+
+    .controls-bottom .play-btn {
+      width: 60px;
+      height: 60px;
+      font-size: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+
+    .controls-bottom .play-btn:hover {
+      color: #ffffff;
+      transform: scale(1.05);
+      box-shadow: 0 10px 25px rgba(56, 189, 248, 0.45);
+    }
+
+    /* Sidebar Lista Lagu */
     .sidebar {
       position: fixed;
-      left: -300px;
+      left: -320px;
       top: 0;
-      width: 280px;
+      width: 300px;
       height: 100%;
-      background: #222;
-      color: #fff;
-      padding: 20px;
-      transition: left 0.3s ease;
+      background: rgba(13, 17, 23, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      color: #f0f6fc;
+      padding: 24px 20px;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto;
       z-index: 999;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .sidebar.active {left: 0;}
-    .sidebar h2 {margin-bottom: 10px;}
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      color: #f0f6fc;
+    }
+
     .sidebar input {
       width: 100%;
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      margin-bottom: 15px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-bottom: 16px;
       outline: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 14px;
     }
-    .sidebar ul {list-style: none;padding: 0;}
+
+    .sidebar input::placeholder {
+      color: #8b949e;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
     .sidebar ul li {
-      padding: 8px;
+      padding: 12px 14px;
       cursor: pointer;
-      border-bottom: 1px solid #444;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #c9d1d9;
+      margin-bottom: 4px;
+      transition: all 0.2s;
     }
-    .sidebar ul li:hover {background: #333;}
-    .sidebar ul li.active {background: #4DB6AC;color:#000;font-weight:bold;}
+
+    .sidebar ul li:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+    }
+
+    .sidebar ul li.active {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.2), transparent);
+      color: #38bdf8;
+      font-weight: 600;
+      border-left: 3px solid #38bdf8;
+    }
   </style>
 </head>
 <body>
+
   <div class="player">
     <div class="header">
-      <span id="menuBtn">☰</span>
-      <span>Sepitify</span>
-      <span>🔍</span>
+      <div class="icon-btn" id="menuBtn"><i class="fa-solid fa-bars"></i></div>
+      <span class="title-app">Sepitify</span>
+      <div class="icon-btn" id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></div>
     </div>
-    <div class="now-playing">🎵 Now Playing</div>
-    <img src="cover.jpg" alt="Sampul" class="cover" id="cover">
+    
+    <div class="now-playing">Now Playing</div>
+    
+    <div class="cover-container">
+      <img src="cover.jpg" alt="Sampul" class="cover" id="cover">
+    </div>
+
     <div class="title" id="title">Judul Lagu</div>
     <div class="artist" id="artist">
       <a href="biodata.html" target="_blank" id="artist-link">Artis</a>
     </div>
+
     <div class="controls-top">
-      <button id="repeat">🔁</button>
-      <button id="shuffle">🔀</button>
+      <button id="repeat" title="Repeat"><i class="fa-solid fa-rotate-right"></i></button>
+      <button id="shuffle" title="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
     </div>
+
     <div class="progress-visualizer">
-      <canvas id="visualizer" width="360" height="60"></canvas>
+      <canvas id="visualizer" width="330" height="40"></canvas>
       <div class="progress-container">
         <span id="current-time">0:00</span>
         <input type="range" id="progress" class="progress-bar" value="0">
         <span id="duration">0:00</span>
       </div>
     </div>
+
     <div class="controls-bottom">
-      <button id="prev">⏮</button>
-      <button class="play-btn" id="play">▶</button>
-      <button id="next">⏭</button>
+      <button id="prev"><i class="fa-solid fa-backward-step"></i></button>
+      <button class="play-btn" id="play"><i class="fa-solid fa-play" id="playIcon"></i></button>
+      <button id="next"><i class="fa-solid fa-forward-step"></i></button>
     </div>
   </div>
 
@@ -170,6 +424,7 @@
   let index = 0, isPlaying = false;
   const audio = new Audio();
   const playBtn = document.getElementById("play");
+  const playIcon = document.getElementById("playIcon");
   const titleEl = document.getElementById("title");
   const artistLinkEl = document.getElementById("artist-link");
   const coverEl = document.getElementById("cover");
@@ -179,12 +434,18 @@
   const sidebar = document.getElementById("sidebar");
   const songList = document.getElementById("songList");
   const search = document.getElementById("search");
+  const menuBtn = document.getElementById("menuBtn");
+  const searchBtn = document.getElementById("searchBtn");
 
-  document.getElementById("menuBtn").addEventListener("click", () => {
+  const toggleSidebar = () => {
     sidebar.classList.toggle("active");
-    search.value = "";
-    renderSongs(songs);
-  });
+    if(sidebar.classList.contains("active")) {
+      search.focus();
+    }
+  };
+
+  menuBtn.addEventListener("click", toggleSidebar);
+  searchBtn.addEventListener("click", toggleSidebar);
 
   function loadSong(i) {
     audio.src = songs[i].file;
@@ -199,8 +460,17 @@
     updateMediaSession(songs[i]);
   }
 
-  function playSong() { isPlaying = true; audio.play(); playBtn.textContent = "⏸"; }
-  function pauseSong() { isPlaying = false; audio.pause(); playBtn.textContent = "▶"; }
+  function playSong() { 
+    isPlaying = true; 
+    audio.play(); 
+    playIcon.className = "fa-solid fa-pause";
+  }
+
+  function pauseSong() { 
+    isPlaying = false; 
+    audio.pause(); 
+    playIcon.className = "fa-solid fa-play";
+  }
 
   playBtn.addEventListener("click", () => { isPlaying ? pauseSong() : playSong(); });
   document.getElementById("next").addEventListener("click", () => { nextSong(); });
@@ -224,7 +494,7 @@
 
   function renderSongs(list) {
     songList.innerHTML = "";
-    list.forEach((song, i) => {
+    list.forEach((song) => {
       const li = document.createElement("li");
       li.textContent = song.title;
       li.addEventListener("click", () => {
@@ -248,7 +518,7 @@
       navigator.mediaSession.metadata = new MediaMetadata({
         title: song.title,
         artist: song.artist,
-        album: "CUB3DPlayer",
+        album: "Sepitify",
         artwork: [{ src: song.cover, sizes: "512x512", type: "image/jpg" }]
       });
       navigator.mediaSession.setActionHandler("play", playSong);
@@ -260,36 +530,45 @@
 
   const canvas = document.getElementById("visualizer");
   const ctx = canvas.getContext("2d");
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 256;
-  const bufferLength = analyser.frequencyBinCount;
-  const dataArray = new Uint8Array(bufferLength);
+  let audioCtx, analyser, dataArray, bufferLength;
 
-  const source = audioCtx.createMediaElementSource(audio);
-  source.connect(analyser);
-  analyser.connect(audioCtx.destination);
+  function initVisualizer() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 128;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+
+    const source = audioCtx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+  }
 
   function drawVisualizer() {
     requestAnimationFrame(drawVisualizer);
+    if(!analyser) return;
+
     analyser.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const barWidth = (canvas.width / bufferLength) * 2.5;
+    const barWidth = (canvas.width / bufferLength) * 1.8;
     let barHeight, x = 0;
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "rgba(0, 180, 255, 0.7)");
-    gradient.addColorStop(1, "rgba(180, 0, 255, 0.7)");
+    gradient.addColorStop(0, "rgba(56, 189, 248, 0.8)");
+    gradient.addColorStop(1, "rgba(37, 99, 235, 0.2)");
     ctx.fillStyle = gradient;
 
     for (let i = 0; i < bufferLength; i++) {
-      barHeight = dataArray[i] / 2;
+      barHeight = (dataArray[i] / 255) * canvas.height;
       ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-      x += barWidth + 1;
+      x += barWidth + 2;
     }
   }
 
   audio.addEventListener("play", () => {
+    if (!audioCtx) {
+      initVisualizer();
+    }
     if (audioCtx.state === "suspended") audioCtx.resume();
     drawVisualizer();
   });
@@ -297,8 +576,6 @@
   renderSongs(songs);
   loadSong(index);
 
-  // ============================
-  // ============================
   function updateURLHash(title) {
     const hash = title.toLowerCase().replace(/\s+/g, "-");
     history.replaceState(null, null, "#" + hash);
